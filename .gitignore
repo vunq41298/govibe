@@ -1,0 +1,12 @@
+/bin/
+/obj/
+*.exe
+*.out
+*.test
+/vendor/
+node_modules/
+*.log
+*.swp
+.vscode/
+.idea/
+.env
