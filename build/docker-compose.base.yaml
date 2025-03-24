@@ -1,0 +1,71 @@
+version: "3.7"  # Define the Docker Compose version
+
+services:
+  # PostgreSQL Database Service
+  pg:
+    container_name: ${PROJECT_NAME}-pg-${CONTAINER_SUFFIX:-local}
+    image: postgres:14-alpine  # Use PostgreSQL version 14 with Alpine base
+    restart: always  # Restart in case of failure
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready"]  # Check if the database is ready
+      interval: 30s
+      timeout: 30s
+      retries: 3
+    networks:
+      - network  # Connect to a shared network
+    environment:
+      TZ: UTC  # Set timezone to UTC
+      POSTGRES_USER: ${PROJECT_NAME}  # Define database user
+      POSTGRES_HOST_AUTH_METHOD: trust  # Allow connections without password
+
+  # Database Migration Service
+  pg-migrate:
+    volumes:
+      - ./api/data/migrations:/api/data/migrations
+    container_name: ${PROJECT_NAME}-pg-migrate-${CONTAINER_SUFFIX:-local}
+    image: migrate/migrate:v4.15.2  # Use migration tool
+    restart: "no"  # Do not restart after execution
+    entrypoint: ""  # No specific entrypoint command
+    networks:
+      - network  # Connect to shared network
+    environment:
+      TZ: UTC  # Set timezone to UTC
+      PG_URL: postgres://@pg:5432/${PROJECT_NAME}?sslmode=disable  # Database URL
+      PGUSER: ${PROJECT_NAME}  # Database user
+      PGPASSWORD: ""  # No password required
+
+  # API Service
+  api:
+    volumes:
+      - ./api:/api
+    working_dir: /api
+    container_name: ${PROJECT_NAME}-api-${CONTAINER_SUFFIX:-local}
+    networks:
+      - network  # Connect to shared network
+    environment:
+      TZ: UTC  # Set timezone to UTC
+      CGO_ENABLED: 0  # Disable C compiler for Go
+      GOARCH: amd64  # Target architecture
+      GOOS: linux  # Target OS
+      PORT: 3000  # API service port
+      APP_NAME: "${PROJECT_NAME}-api"  # Application name
+      PROJECT_NAME: "${PROJECT_NAME}"  # Project identifier
+      PROJECT_COMPONENT: api  # Component name
+      VERSION: local  # Version label
+      SERVER_NAME: test  # Server name
+      ENVIRONMENT: "test"  # Environment type
+      CORS_ALLOWED_ORIGINS: "*"  # Allow all origins
+      PG_URL: postgres://${PROJECT_NAME}:@pg:5432/${PROJECT_NAME}?sslmode=disable  # Database URL
+      PG_POOL_MAX_OPEN_CONNS: 4  # Max open connections
+      PG_POOL_MAX_IDLE_CONNS: 2  # Max idle connections
+      GQL_INTROSPECTION_ENABLED: "true"  # Enable GraphQL introspection
+      PPMS_ENABLED: "false"  # Disable PPMS feature
+
+  # Mockery Service for Generating Mocks
+  mockery:
+    container_name: ${PROJECT_NAME}-mockery-${CONTAINER_SUFFIX:-local}
+    image: vektra/mockery:v2.35  # Use Mockery for generating mocks
+
+networks:
+  network:
+    name: ${PROJECT_NAME}-${CONTAINER_SUFFIX:-local}  # Define network name

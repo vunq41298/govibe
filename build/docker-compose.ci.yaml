@@ -1,0 +1,62 @@
+version: "3.7"  # Define the Docker Compose version
+
+services:
+  # PostgreSQL Database Service for CI
+  pg:
+    image: postgres:15  # Use PostgreSQL version 15
+    container_name: govibe-ci-pg  # Name the database container
+    restart: always  # Restart in case of failure
+    expose:
+      - "5432"  # Make the database accessible to other services
+    environment:
+      POSTGRES_DB: govibe  # Define the test database name
+      POSTGRES_USER: govibe  # Set the test database user
+    volumes:
+      - pg-data:/var/lib/postgresql/data  # Persist database data for CI runs
+
+  # Database Migration Service
+  pg-migrate:
+    image: golang:1.19  # Use Golang image for running migrations
+    container_name: govibe-ci-pg-migrate
+    depends_on:
+      - pg  # Ensure database is available before running migrations
+    volumes:
+      - api-migrations:/api-migrations  # Mount migrations directory
+    command: ["/bin/sh", "-c", "echo 'Run migrations here'"]  # Placeholder for actual migration commands
+
+  # API Service for CI
+  api:
+    image: golang:1.19  # Use the same Golang version as development
+    container_name: govibe-ci-api  # Name the API container for CI
+    restart: on-failure  # Restart only if it fails
+    depends_on:
+      - pg  # Ensure database is available before starting API
+    environment:
+      ENVIRONMENT: "ci"  # Define environment as CI
+      DATABASE_URL: "postgres://govibe@pg:5432/govibe?sslmode=disable"  # Database connection string
+    volumes:
+      - api:/api  # Mount API project directory
+
+  # Alpine Container for Running CI Scripts
+  alpine:
+    image: alpine  # Use a lightweight Alpine Linux container
+    container_name: govibe-ci-alpine  # Name the container
+    restart: "no"  # Do not restart after execution
+    volumes:
+      - api:/api  # Mount API project directory
+      - api-migrations:/api-migrations  # Mount migrations directory
+    networks:
+      - network  # Use a shared network for communication
+
+  # Mockery Service for Generating Mocks
+  mockery:
+    image: vektra/mockery:v2.20.0  # Use Mockery for generating mocks
+    container_name: govibe-ci-mockery  # Name the mockery container
+    volumes:
+      - api:/api  # Mount API project directory
+
+volumes:
+  api-migrations:
+    name: ${PROJECT_NAME}-api-migrate-${CONTAINER_SUFFIX:-local}
+  api:
+    name: ${PROJECT_NAME}-api-${CONTAINER_SUFFIX:-local}
