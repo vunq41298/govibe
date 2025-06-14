@@ -1,0 +1,15 @@
+# Refer to https://github.com/volatiletech/sqlboiler#configuration
+schema: public
+pkgname: orm
+output: internal/repository/orm
+no-hooks: true
+no-tests: true
+psql:
+  dbname: govibe
+  host: pg
+  port: 5432
+  user: govibe
+  pass: ''
+  sslmode: disable
+  blacklist:
+    - schema_migrations
