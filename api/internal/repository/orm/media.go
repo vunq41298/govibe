@@ -14,7 +14,6 @@ import (
 	"time"
 
 	"github.com/friendsofgo/errors"
-	"github.com/volatiletech/null/v8"
 	"github.com/volatiletech/sqlboiler/v4/boil"
 	"github.com/volatiletech/sqlboiler/v4/queries"
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
@@ -24,15 +23,15 @@ import (
 
 // Medium is an object representing the database table.
 type Medium struct {
-	ID            int64       `boil:"id" json:"id" toml:"id" yaml:"id"`
-	PlaceID       int64       `boil:"place_id" json:"place_id" toml:"place_id" yaml:"place_id"`
-	URL           string      `boil:"url" json:"url" toml:"url" yaml:"url"`
-	Type          string      `boil:"type" json:"type" toml:"type" yaml:"type"`
-	Caption       null.String `boil:"caption" json:"caption,omitempty" toml:"caption" yaml:"caption,omitempty"`
-	OrderNum      null.Int    `boil:"order_num" json:"order_num,omitempty" toml:"order_num" yaml:"order_num,omitempty"`
-	IsHeaderImage null.Bool   `boil:"is_header_image" json:"is_header_image,omitempty" toml:"is_header_image" yaml:"is_header_image,omitempty"`
-	CreatedAt     time.Time   `boil:"created_at" json:"created_at" toml:"created_at" yaml:"created_at"`
-	UpdatedAt     time.Time   `boil:"updated_at" json:"updated_at" toml:"updated_at" yaml:"updated_at"`
+	ID            int64     `boil:"id" json:"id" toml:"id" yaml:"id"`
+	PlaceID       int64     `boil:"place_id" json:"place_id" toml:"place_id" yaml:"place_id"`
+	URL           string    `boil:"url" json:"url" toml:"url" yaml:"url"`
+	Type          string    `boil:"type" json:"type" toml:"type" yaml:"type"`
+	Caption       string    `boil:"caption" json:"caption" toml:"caption" yaml:"caption"`
+	OrderNum      int       `boil:"order_num" json:"order_num" toml:"order_num" yaml:"order_num"`
+	IsHeaderImage bool      `boil:"is_header_image" json:"is_header_image" toml:"is_header_image" yaml:"is_header_image"`
+	CreatedAt     time.Time `boil:"created_at" json:"created_at" toml:"created_at" yaml:"created_at"`
+	UpdatedAt     time.Time `boil:"updated_at" json:"updated_at" toml:"updated_at" yaml:"updated_at"`
 
 	R *mediumR `boil:"-" json:"-" toml:"-" yaml:"-"`
 	L mediumL  `boil:"-" json:"-" toml:"-" yaml:"-"`
@@ -84,34 +83,22 @@ var MediumTableColumns = struct {
 
 // Generated where
 
-type whereHelpernull_String struct{ field string }
+type whereHelperint struct{ field string }
 
-func (w whereHelpernull_String) EQ(x null.String) qm.QueryMod {
-	return qmhelper.WhereNullEQ(w.field, false, x)
-}
-func (w whereHelpernull_String) NEQ(x null.String) qm.QueryMod {
-	return qmhelper.WhereNullEQ(w.field, true, x)
-}
-func (w whereHelpernull_String) LT(x null.String) qm.QueryMod {
-	return qmhelper.Where(w.field, qmhelper.LT, x)
-}
-func (w whereHelpernull_String) LTE(x null.String) qm.QueryMod {
-	return qmhelper.Where(w.field, qmhelper.LTE, x)
-}
-func (w whereHelpernull_String) GT(x null.String) qm.QueryMod {
-	return qmhelper.Where(w.field, qmhelper.GT, x)
-}
-func (w whereHelpernull_String) GTE(x null.String) qm.QueryMod {
-	return qmhelper.Where(w.field, qmhelper.GTE, x)
-}
-func (w whereHelpernull_String) IN(slice []string) qm.QueryMod {
+func (w whereHelperint) EQ(x int) qm.QueryMod  { return qmhelper.Where(w.field, qmhelper.EQ, x) }
+func (w whereHelperint) NEQ(x int) qm.QueryMod { return qmhelper.Where(w.field, qmhelper.NEQ, x) }
+func (w whereHelperint) LT(x int) qm.QueryMod  { return qmhelper.Where(w.field, qmhelper.LT, x) }
+func (w whereHelperint) LTE(x int) qm.QueryMod { return qmhelper.Where(w.field, qmhelper.LTE, x) }
+func (w whereHelperint) GT(x int) qm.QueryMod  { return qmhelper.Where(w.field, qmhelper.GT, x) }
+func (w whereHelperint) GTE(x int) qm.QueryMod { return qmhelper.Where(w.field, qmhelper.GTE, x) }
+func (w whereHelperint) IN(slice []int) qm.QueryMod {
 	values := make([]interface{}, 0, len(slice))
 	for _, value := range slice {
 		values = append(values, value)
 	}
 	return qm.WhereIn(fmt.Sprintf("%s IN ?", w.field), values...)
 }
-func (w whereHelpernull_String) NIN(slice []string) qm.QueryMod {
+func (w whereHelperint) NIN(slice []int) qm.QueryMod {
 	values := make([]interface{}, 0, len(slice))
 	for _, value := range slice {
 		values = append(values, value)
@@ -119,79 +106,23 @@ func (w whereHelpernull_String) NIN(slice []string) qm.QueryMod {
 	return qm.WhereNotIn(fmt.Sprintf("%s NOT IN ?", w.field), values...)
 }
 
-func (w whereHelpernull_String) IsNull() qm.QueryMod    { return qmhelper.WhereIsNull(w.field) }
-func (w whereHelpernull_String) IsNotNull() qm.QueryMod { return qmhelper.WhereIsNotNull(w.field) }
+type whereHelperbool struct{ field string }
 
-type whereHelpernull_Int struct{ field string }
-
-func (w whereHelpernull_Int) EQ(x null.Int) qm.QueryMod {
-	return qmhelper.WhereNullEQ(w.field, false, x)
-}
-func (w whereHelpernull_Int) NEQ(x null.Int) qm.QueryMod {
-	return qmhelper.WhereNullEQ(w.field, true, x)
-}
-func (w whereHelpernull_Int) LT(x null.Int) qm.QueryMod {
-	return qmhelper.Where(w.field, qmhelper.LT, x)
-}
-func (w whereHelpernull_Int) LTE(x null.Int) qm.QueryMod {
-	return qmhelper.Where(w.field, qmhelper.LTE, x)
-}
-func (w whereHelpernull_Int) GT(x null.Int) qm.QueryMod {
-	return qmhelper.Where(w.field, qmhelper.GT, x)
-}
-func (w whereHelpernull_Int) GTE(x null.Int) qm.QueryMod {
-	return qmhelper.Where(w.field, qmhelper.GTE, x)
-}
-func (w whereHelpernull_Int) IN(slice []int) qm.QueryMod {
-	values := make([]interface{}, 0, len(slice))
-	for _, value := range slice {
-		values = append(values, value)
-	}
-	return qm.WhereIn(fmt.Sprintf("%s IN ?", w.field), values...)
-}
-func (w whereHelpernull_Int) NIN(slice []int) qm.QueryMod {
-	values := make([]interface{}, 0, len(slice))
-	for _, value := range slice {
-		values = append(values, value)
-	}
-	return qm.WhereNotIn(fmt.Sprintf("%s NOT IN ?", w.field), values...)
-}
-
-func (w whereHelpernull_Int) IsNull() qm.QueryMod    { return qmhelper.WhereIsNull(w.field) }
-func (w whereHelpernull_Int) IsNotNull() qm.QueryMod { return qmhelper.WhereIsNotNull(w.field) }
-
-type whereHelpernull_Bool struct{ field string }
-
-func (w whereHelpernull_Bool) EQ(x null.Bool) qm.QueryMod {
-	return qmhelper.WhereNullEQ(w.field, false, x)
-}
-func (w whereHelpernull_Bool) NEQ(x null.Bool) qm.QueryMod {
-	return qmhelper.WhereNullEQ(w.field, true, x)
-}
-func (w whereHelpernull_Bool) LT(x null.Bool) qm.QueryMod {
-	return qmhelper.Where(w.field, qmhelper.LT, x)
-}
-func (w whereHelpernull_Bool) LTE(x null.Bool) qm.QueryMod {
-	return qmhelper.Where(w.field, qmhelper.LTE, x)
-}
-func (w whereHelpernull_Bool) GT(x null.Bool) qm.QueryMod {
-	return qmhelper.Where(w.field, qmhelper.GT, x)
-}
-func (w whereHelpernull_Bool) GTE(x null.Bool) qm.QueryMod {
-	return qmhelper.Where(w.field, qmhelper.GTE, x)
-}
-
-func (w whereHelpernull_Bool) IsNull() qm.QueryMod    { return qmhelper.WhereIsNull(w.field) }
-func (w whereHelpernull_Bool) IsNotNull() qm.QueryMod { return qmhelper.WhereIsNotNull(w.field) }
+func (w whereHelperbool) EQ(x bool) qm.QueryMod  { return qmhelper.Where(w.field, qmhelper.EQ, x) }
+func (w whereHelperbool) NEQ(x bool) qm.QueryMod { return qmhelper.Where(w.field, qmhelper.NEQ, x) }
+func (w whereHelperbool) LT(x bool) qm.QueryMod  { return qmhelper.Where(w.field, qmhelper.LT, x) }
+func (w whereHelperbool) LTE(x bool) qm.QueryMod { return qmhelper.Where(w.field, qmhelper.LTE, x) }
+func (w whereHelperbool) GT(x bool) qm.QueryMod  { return qmhelper.Where(w.field, qmhelper.GT, x) }
+func (w whereHelperbool) GTE(x bool) qm.QueryMod { return qmhelper.Where(w.field, qmhelper.GTE, x) }
 
 var MediumWhere = struct {
 	ID            whereHelperint64
 	PlaceID       whereHelperint64
 	URL           whereHelperstring
 	Type          whereHelperstring
-	Caption       whereHelpernull_String
-	OrderNum      whereHelpernull_Int
-	IsHeaderImage whereHelpernull_Bool
+	Caption       whereHelperstring
+	OrderNum      whereHelperint
+	IsHeaderImage whereHelperbool
 	CreatedAt     whereHelpertime_Time
 	UpdatedAt     whereHelpertime_Time
 }{
@@ -199,9 +130,9 @@ var MediumWhere = struct {
 	PlaceID:       whereHelperint64{field: "\"media\".\"place_id\""},
 	URL:           whereHelperstring{field: "\"media\".\"url\""},
 	Type:          whereHelperstring{field: "\"media\".\"type\""},
-	Caption:       whereHelpernull_String{field: "\"media\".\"caption\""},
-	OrderNum:      whereHelpernull_Int{field: "\"media\".\"order_num\""},
-	IsHeaderImage: whereHelpernull_Bool{field: "\"media\".\"is_header_image\""},
+	Caption:       whereHelperstring{field: "\"media\".\"caption\""},
+	OrderNum:      whereHelperint{field: "\"media\".\"order_num\""},
+	IsHeaderImage: whereHelperbool{field: "\"media\".\"is_header_image\""},
 	CreatedAt:     whereHelpertime_Time{field: "\"media\".\"created_at\""},
 	UpdatedAt:     whereHelpertime_Time{field: "\"media\".\"updated_at\""},
 }
@@ -235,8 +166,8 @@ type mediumL struct{}
 
 var (
 	mediumAllColumns            = []string{"id", "place_id", "url", "type", "caption", "order_num", "is_header_image", "created_at", "updated_at"}
-	mediumColumnsWithoutDefault = []string{"id", "place_id", "url", "type"}
-	mediumColumnsWithDefault    = []string{"caption", "order_num", "is_header_image", "created_at", "updated_at"}
+	mediumColumnsWithoutDefault = []string{"id", "place_id"}
+	mediumColumnsWithDefault    = []string{"url", "type", "caption", "order_num", "is_header_image", "created_at", "updated_at"}
 	mediumPrimaryKeyColumns     = []string{"id"}
 	mediumGeneratedColumns      = []string{}
 )

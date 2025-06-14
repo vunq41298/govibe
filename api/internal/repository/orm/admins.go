@@ -162,8 +162,8 @@ type adminL struct{}
 
 var (
 	adminAllColumns            = []string{"id", "username", "password_hash", "created_at", "updated_at"}
-	adminColumnsWithoutDefault = []string{"id", "username", "password_hash"}
-	adminColumnsWithDefault    = []string{"created_at", "updated_at"}
+	adminColumnsWithoutDefault = []string{"id", "username"}
+	adminColumnsWithDefault    = []string{"password_hash", "created_at", "updated_at"}
 	adminPrimaryKeyColumns     = []string{"id"}
 	adminGeneratedColumns      = []string{}
 )

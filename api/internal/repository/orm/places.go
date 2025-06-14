@@ -14,7 +14,6 @@ import (
 	"time"
 
 	"github.com/friendsofgo/errors"
-	"github.com/volatiletech/null/v8"
 	"github.com/volatiletech/sqlboiler/v4/boil"
 	"github.com/volatiletech/sqlboiler/v4/queries"
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
@@ -24,14 +23,14 @@ import (
 
 // Place is an object representing the database table.
 type Place struct {
-	ID          int64       `boil:"id" json:"id" toml:"id" yaml:"id"`
-	Name        string      `boil:"name" json:"name" toml:"name" yaml:"name"`
-	Description null.String `boil:"description" json:"description,omitempty" toml:"description" yaml:"description,omitempty"`
-	Province    null.String `boil:"province" json:"province,omitempty" toml:"province" yaml:"province,omitempty"`
-	Slug        string      `boil:"slug" json:"slug" toml:"slug" yaml:"slug"`
-	VoteCount   null.Int    `boil:"vote_count" json:"vote_count,omitempty" toml:"vote_count" yaml:"vote_count,omitempty"`
-	CreatedAt   time.Time   `boil:"created_at" json:"created_at" toml:"created_at" yaml:"created_at"`
-	UpdatedAt   time.Time   `boil:"updated_at" json:"updated_at" toml:"updated_at" yaml:"updated_at"`
+	ID          int64     `boil:"id" json:"id" toml:"id" yaml:"id"`
+	Name        string    `boil:"name" json:"name" toml:"name" yaml:"name"`
+	Description string    `boil:"description" json:"description" toml:"description" yaml:"description"`
+	ProvinceID  int64     `boil:"province_id" json:"province_id" toml:"province_id" yaml:"province_id"`
+	Slug        string    `boil:"slug" json:"slug" toml:"slug" yaml:"slug"`
+	AverageVote float64   `boil:"average_vote" json:"average_vote" toml:"average_vote" yaml:"average_vote"`
+	CreatedAt   time.Time `boil:"created_at" json:"created_at" toml:"created_at" yaml:"created_at"`
+	UpdatedAt   time.Time `boil:"updated_at" json:"updated_at" toml:"updated_at" yaml:"updated_at"`
 
 	R *placeR `boil:"-" json:"-" toml:"-" yaml:"-"`
 	L placeL  `boil:"-" json:"-" toml:"-" yaml:"-"`
@@ -41,18 +40,18 @@ var PlaceColumns = struct {
 	ID          string
 	Name        string
 	Description string
-	Province    string
+	ProvinceID  string
 	Slug        string
-	VoteCount   string
+	AverageVote string
 	CreatedAt   string
 	UpdatedAt   string
 }{
 	ID:          "id",
 	Name:        "name",
 	Description: "description",
-	Province:    "province",
+	ProvinceID:  "province_id",
 	Slug:        "slug",
-	VoteCount:   "vote_count",
+	AverageVote: "average_vote",
 	CreatedAt:   "created_at",
 	UpdatedAt:   "updated_at",
 }
@@ -61,55 +60,87 @@ var PlaceTableColumns = struct {
 	ID          string
 	Name        string
 	Description string
-	Province    string
+	ProvinceID  string
 	Slug        string
-	VoteCount   string
+	AverageVote string
 	CreatedAt   string
 	UpdatedAt   string
 }{
 	ID:          "places.id",
 	Name:        "places.name",
 	Description: "places.description",
-	Province:    "places.province",
+	ProvinceID:  "places.province_id",
 	Slug:        "places.slug",
-	VoteCount:   "places.vote_count",
+	AverageVote: "places.average_vote",
 	CreatedAt:   "places.created_at",
 	UpdatedAt:   "places.updated_at",
 }
 
 // Generated where
 
+type whereHelperfloat64 struct{ field string }
+
+func (w whereHelperfloat64) EQ(x float64) qm.QueryMod { return qmhelper.Where(w.field, qmhelper.EQ, x) }
+func (w whereHelperfloat64) NEQ(x float64) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.NEQ, x)
+}
+func (w whereHelperfloat64) LT(x float64) qm.QueryMod { return qmhelper.Where(w.field, qmhelper.LT, x) }
+func (w whereHelperfloat64) LTE(x float64) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.LTE, x)
+}
+func (w whereHelperfloat64) GT(x float64) qm.QueryMod { return qmhelper.Where(w.field, qmhelper.GT, x) }
+func (w whereHelperfloat64) GTE(x float64) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.GTE, x)
+}
+func (w whereHelperfloat64) IN(slice []float64) qm.QueryMod {
+	values := make([]interface{}, 0, len(slice))
+	for _, value := range slice {
+		values = append(values, value)
+	}
+	return qm.WhereIn(fmt.Sprintf("%s IN ?", w.field), values...)
+}
+func (w whereHelperfloat64) NIN(slice []float64) qm.QueryMod {
+	values := make([]interface{}, 0, len(slice))
+	for _, value := range slice {
+		values = append(values, value)
+	}
+	return qm.WhereNotIn(fmt.Sprintf("%s NOT IN ?", w.field), values...)
+}
+
 var PlaceWhere = struct {
 	ID          whereHelperint64
 	Name        whereHelperstring
-	Description whereHelpernull_String
-	Province    whereHelpernull_String
+	Description whereHelperstring
+	ProvinceID  whereHelperint64
 	Slug        whereHelperstring
-	VoteCount   whereHelpernull_Int
+	AverageVote whereHelperfloat64
 	CreatedAt   whereHelpertime_Time
 	UpdatedAt   whereHelpertime_Time
 }{
 	ID:          whereHelperint64{field: "\"places\".\"id\""},
 	Name:        whereHelperstring{field: "\"places\".\"name\""},
-	Description: whereHelpernull_String{field: "\"places\".\"description\""},
-	Province:    whereHelpernull_String{field: "\"places\".\"province\""},
+	Description: whereHelperstring{field: "\"places\".\"description\""},
+	ProvinceID:  whereHelperint64{field: "\"places\".\"province_id\""},
 	Slug:        whereHelperstring{field: "\"places\".\"slug\""},
-	VoteCount:   whereHelpernull_Int{field: "\"places\".\"vote_count\""},
+	AverageVote: whereHelperfloat64{field: "\"places\".\"average_vote\""},
 	CreatedAt:   whereHelpertime_Time{field: "\"places\".\"created_at\""},
 	UpdatedAt:   whereHelpertime_Time{field: "\"places\".\"updated_at\""},
 }
 
 // PlaceRels is where relationship names are stored.
 var PlaceRels = struct {
+	Province string
 	Comments string
 	Media    string
 }{
+	Province: "Province",
 	Comments: "Comments",
 	Media:    "Media",
 }
 
 // placeR is where relationships are stored.
 type placeR struct {
+	Province *Province    `boil:"Province" json:"Province" toml:"Province" yaml:"Province"`
 	Comments CommentSlice `boil:"Comments" json:"Comments" toml:"Comments" yaml:"Comments"`
 	Media    MediumSlice  `boil:"Media" json:"Media" toml:"Media" yaml:"Media"`
 }
@@ -117,6 +148,13 @@ type placeR struct {
 // NewStruct creates a new relationship struct
 func (*placeR) NewStruct() *placeR {
 	return &placeR{}
+}
+
+func (r *placeR) GetProvince() *Province {
+	if r == nil {
+		return nil
+	}
+	return r.Province
 }
 
 func (r *placeR) GetComments() CommentSlice {
@@ -137,9 +175,9 @@ func (r *placeR) GetMedia() MediumSlice {
 type placeL struct{}
 
 var (
-	placeAllColumns            = []string{"id", "name", "description", "province", "slug", "vote_count", "created_at", "updated_at"}
-	placeColumnsWithoutDefault = []string{"id", "name", "slug"}
-	placeColumnsWithDefault    = []string{"description", "province", "vote_count", "created_at", "updated_at"}
+	placeAllColumns            = []string{"id", "name", "description", "province_id", "slug", "average_vote", "created_at", "updated_at"}
+	placeColumnsWithoutDefault = []string{"id", "name", "province_id", "slug"}
+	placeColumnsWithDefault    = []string{"description", "average_vote", "created_at", "updated_at"}
 	placePrimaryKeyColumns     = []string{"id"}
 	placeGeneratedColumns      = []string{}
 )
@@ -235,6 +273,17 @@ func (q placeQuery) Exists(ctx context.Context, exec boil.ContextExecutor) (bool
 	return count > 0, nil
 }
 
+// Province pointed to by the foreign key.
+func (o *Place) Province(mods ...qm.QueryMod) provinceQuery {
+	queryMods := []qm.QueryMod{
+		qm.Where("\"id\" = ?", o.ProvinceID),
+	}
+
+	queryMods = append(queryMods, mods...)
+
+	return Provinces(queryMods...)
+}
+
 // Comments retrieves all the comment's Comments with an executor.
 func (o *Place) Comments(mods ...qm.QueryMod) commentQuery {
 	var queryMods []qm.QueryMod
@@ -261,6 +310,118 @@ func (o *Place) Media(mods ...qm.QueryMod) mediumQuery {
 	)
 
 	return Media(queryMods...)
+}
+
+// LoadProvince allows an eager lookup of values, cached into the
+// loaded structs of the objects. This is for an N-1 relationship.
+func (placeL) LoadProvince(ctx context.Context, e boil.ContextExecutor, singular bool, maybePlace interface{}, mods queries.Applicator) error {
+	var slice []*Place
+	var object *Place
+
+	if singular {
+		var ok bool
+		object, ok = maybePlace.(*Place)
+		if !ok {
+			object = new(Place)
+			ok = queries.SetFromEmbeddedStruct(&object, &maybePlace)
+			if !ok {
+				return errors.New(fmt.Sprintf("failed to set %T from embedded struct %T", object, maybePlace))
+			}
+		}
+	} else {
+		s, ok := maybePlace.(*[]*Place)
+		if ok {
+			slice = *s
+		} else {
+			ok = queries.SetFromEmbeddedStruct(&slice, maybePlace)
+			if !ok {
+				return errors.New(fmt.Sprintf("failed to set %T from embedded struct %T", slice, maybePlace))
+			}
+		}
+	}
+
+	args := make([]interface{}, 0, 1)
+	if singular {
+		if object.R == nil {
+			object.R = &placeR{}
+		}
+		args = append(args, object.ProvinceID)
+
+	} else {
+	Outer:
+		for _, obj := range slice {
+			if obj.R == nil {
+				obj.R = &placeR{}
+			}
+
+			for _, a := range args {
+				if a == obj.ProvinceID {
+					continue Outer
+				}
+			}
+
+			args = append(args, obj.ProvinceID)
+
+		}
+	}
+
+	if len(args) == 0 {
+		return nil
+	}
+
+	query := NewQuery(
+		qm.From(`provinces`),
+		qm.WhereIn(`provinces.id in ?`, args...),
+	)
+	if mods != nil {
+		mods.Apply(query)
+	}
+
+	results, err := query.QueryContext(ctx, e)
+	if err != nil {
+		return errors.Wrap(err, "failed to eager load Province")
+	}
+
+	var resultSlice []*Province
+	if err = queries.Bind(results, &resultSlice); err != nil {
+		return errors.Wrap(err, "failed to bind eager loaded slice Province")
+	}
+
+	if err = results.Close(); err != nil {
+		return errors.Wrap(err, "failed to close results of eager load for provinces")
+	}
+	if err = results.Err(); err != nil {
+		return errors.Wrap(err, "error occurred during iteration of eager loaded relations for provinces")
+	}
+
+	if len(resultSlice) == 0 {
+		return nil
+	}
+
+	if singular {
+		foreign := resultSlice[0]
+		object.R.Province = foreign
+		if foreign.R == nil {
+			foreign.R = &provinceR{}
+		}
+		foreign.R.Places = append(foreign.R.Places, object)
+		return nil
+	}
+
+	for _, local := range slice {
+		for _, foreign := range resultSlice {
+			if local.ProvinceID == foreign.ID {
+				local.R.Province = foreign
+				if foreign.R == nil {
+					foreign.R = &provinceR{}
+				}
+				foreign.R.Places = append(foreign.R.Places, local)
+				break
+			}
+		}
+	}
+
+	return nil
 }
 
 // LoadComments allows an eager lookup of values, cached into the
@@ -472,6 +633,53 @@ func (placeL) LoadMedia(ctx context.Context, e boil.ContextExecutor, singular bo
 				break
 			}
 		}
+	}
+
+	return nil
+}
+
+// SetProvince of the place to the related item.
+// Sets o.R.Province to related.
+// Adds o to related.R.Places.
+func (o *Place) SetProvince(ctx context.Context, exec boil.ContextExecutor, insert bool, related *Province) error {
+	var err error
+	if insert {
+		if err = related.Insert(ctx, exec, boil.Infer()); err != nil {
+			return errors.Wrap(err, "failed to insert into foreign table")
+		}
+	}
+
+	updateQuery := fmt.Sprintf(
+		"UPDATE \"places\" SET %s WHERE %s",
+		strmangle.SetParamNames("\"", "\"", 1, []string{"province_id"}),
+		strmangle.WhereClause("\"", "\"", 2, placePrimaryKeyColumns),
+	)
+	values := []interface{}{related.ID, o.ID}
+
+	if boil.IsDebug(ctx) {
+		writer := boil.DebugWriterFrom(ctx)
+		fmt.Fprintln(writer, updateQuery)
+		fmt.Fprintln(writer, values)
+	}
+	if _, err = exec.ExecContext(ctx, updateQuery, values...); err != nil {
+		return errors.Wrap(err, "failed to update local table")
+	}
+
+	o.ProvinceID = related.ID
+	if o.R == nil {
+		o.R = &placeR{
+			Province: related,
+		}
+	} else {
+		o.R.Province = related
+	}
+
+	if related.R == nil {
+		related.R = &provinceR{
+			Places: PlaceSlice{o},
+		}
+	} else {
+		related.R.Places = append(related.R.Places, o)
 	}
 
 	return nil

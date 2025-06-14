@@ -106,8 +106,8 @@ type commentL struct{}
 
 var (
 	commentAllColumns            = []string{"id", "place_id", "content", "created_at", "updated_at"}
-	commentColumnsWithoutDefault = []string{"id", "place_id", "content"}
-	commentColumnsWithDefault    = []string{"created_at", "updated_at"}
+	commentColumnsWithoutDefault = []string{"id", "place_id"}
+	commentColumnsWithDefault    = []string{"content", "created_at", "updated_at"}
 	commentPrimaryKeyColumns     = []string{"id"}
 	commentGeneratedColumns      = []string{}
 )
