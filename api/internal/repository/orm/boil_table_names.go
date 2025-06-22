@@ -6,13 +6,13 @@ package orm
 var TableNames = struct {
 	Admins    string
 	Comments  string
-	Media     string
+	Images    string
 	Places    string
 	Provinces string
 }{
 	Admins:    "admins",
 	Comments:  "comments",
-	Media:     "media",
+	Images:    "images",
 	Places:    "places",
 	Provinces: "provinces",
 }

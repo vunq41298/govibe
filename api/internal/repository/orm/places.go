@@ -131,18 +131,18 @@ var PlaceWhere = struct {
 var PlaceRels = struct {
 	Province string
 	Comments string
-	Media    string
+	Images   string
 }{
 	Province: "Province",
 	Comments: "Comments",
-	Media:    "Media",
+	Images:   "Images",
 }
 
 // placeR is where relationships are stored.
 type placeR struct {
 	Province *Province    `boil:"Province" json:"Province" toml:"Province" yaml:"Province"`
 	Comments CommentSlice `boil:"Comments" json:"Comments" toml:"Comments" yaml:"Comments"`
-	Media    MediumSlice  `boil:"Media" json:"Media" toml:"Media" yaml:"Media"`
+	Images   ImageSlice   `boil:"Images" json:"Images" toml:"Images" yaml:"Images"`
 }
 
 // NewStruct creates a new relationship struct
@@ -164,11 +164,11 @@ func (r *placeR) GetComments() CommentSlice {
 	return r.Comments
 }
 
-func (r *placeR) GetMedia() MediumSlice {
+func (r *placeR) GetImages() ImageSlice {
 	if r == nil {
 		return nil
 	}
-	return r.Media
+	return r.Images
 }
 
 // placeL is where Load methods for each relationship are stored.
@@ -298,18 +298,18 @@ func (o *Place) Comments(mods ...qm.QueryMod) commentQuery {
 	return Comments(queryMods...)
 }
 
-// Media retrieves all the medium's Media with an executor.
-func (o *Place) Media(mods ...qm.QueryMod) mediumQuery {
+// Images retrieves all the image's Images with an executor.
+func (o *Place) Images(mods ...qm.QueryMod) imageQuery {
 	var queryMods []qm.QueryMod
 	if len(mods) != 0 {
 		queryMods = append(queryMods, mods...)
 	}
 
 	queryMods = append(queryMods,
-		qm.Where("\"media\".\"place_id\"=?", o.ID),
+		qm.Where("\"images\".\"place_id\"=?", o.ID),
 	)
 
-	return Media(queryMods...)
+	return Images(queryMods...)
 }
 
 // LoadProvince allows an eager lookup of values, cached into the
@@ -531,9 +531,9 @@ func (placeL) LoadComments(ctx context.Context, e boil.ContextExecutor, singular
 	return nil
 }
 
-// LoadMedia allows an eager lookup of values, cached into the
+// LoadImages allows an eager lookup of values, cached into the
 // loaded structs of the objects. This is for a 1-M or N-M relationship.
-func (placeL) LoadMedia(ctx context.Context, e boil.ContextExecutor, singular bool, maybePlace interface{}, mods queries.Applicator) error {
+func (placeL) LoadImages(ctx context.Context, e boil.ContextExecutor, singular bool, maybePlace interface{}, mods queries.Applicator) error {
 	var slice []*Place
 	var object *Place
 
@@ -587,8 +587,8 @@ func (placeL) LoadMedia(ctx context.Context, e boil.ContextExecutor, singular bo
 	}
 
 	query := NewQuery(
-		qm.From(`media`),
-		qm.WhereIn(`media.place_id in ?`, args...),
+		qm.From(`images`),
+		qm.WhereIn(`images.place_id in ?`, args...),
 	)
 	if mods != nil {
 		mods.Apply(query)
@@ -596,26 +596,26 @@ func (placeL) LoadMedia(ctx context.Context, e boil.ContextExecutor, singular bo
 
 	results, err := query.QueryContext(ctx, e)
 	if err != nil {
-		return errors.Wrap(err, "failed to eager load media")
+		return errors.Wrap(err, "failed to eager load images")
 	}
 
-	var resultSlice []*Medium
+	var resultSlice []*Image
 	if err = queries.Bind(results, &resultSlice); err != nil {
-		return errors.Wrap(err, "failed to bind eager loaded slice media")
+		return errors.Wrap(err, "failed to bind eager loaded slice images")
 	}
 
 	if err = results.Close(); err != nil {
-		return errors.Wrap(err, "failed to close results in eager load on media")
+		return errors.Wrap(err, "failed to close results in eager load on images")
 	}
 	if err = results.Err(); err != nil {
-		return errors.Wrap(err, "error occurred during iteration of eager loaded relations for media")
+		return errors.Wrap(err, "error occurred during iteration of eager loaded relations for images")
 	}
 
 	if singular {
-		object.R.Media = resultSlice
+		object.R.Images = resultSlice
 		for _, foreign := range resultSlice {
 			if foreign.R == nil {
-				foreign.R = &mediumR{}
+				foreign.R = &imageR{}
 			}
 			foreign.R.Place = object
 		}
@@ -625,9 +625,9 @@ func (placeL) LoadMedia(ctx context.Context, e boil.ContextExecutor, singular bo
 	for _, foreign := range resultSlice {
 		for _, local := range slice {
 			if local.ID == foreign.PlaceID {
-				local.R.Media = append(local.R.Media, foreign)
+				local.R.Images = append(local.R.Images, foreign)
 				if foreign.R == nil {
-					foreign.R = &mediumR{}
+					foreign.R = &imageR{}
 				}
 				foreign.R.Place = local
 				break
@@ -738,11 +738,11 @@ func (o *Place) AddComments(ctx context.Context, exec boil.ContextExecutor, inse
 	return nil
 }
 
-// AddMedia adds the given related objects to the existing relationships
+// AddImages adds the given related objects to the existing relationships
 // of the place, optionally inserting them as new records.
-// Appends related to o.R.Media.
+// Appends related to o.R.Images.
 // Sets related.R.Place appropriately.
-func (o *Place) AddMedia(ctx context.Context, exec boil.ContextExecutor, insert bool, related ...*Medium) error {
+func (o *Place) AddImages(ctx context.Context, exec boil.ContextExecutor, insert bool, related ...*Image) error {
 	var err error
 	for _, rel := range related {
 		if insert {
@@ -752,9 +752,9 @@ func (o *Place) AddMedia(ctx context.Context, exec boil.ContextExecutor, insert 
 			}
 		} else {
 			updateQuery := fmt.Sprintf(
-				"UPDATE \"media\" SET %s WHERE %s",
+				"UPDATE \"images\" SET %s WHERE %s",
 				strmangle.SetParamNames("\"", "\"", 1, []string{"place_id"}),
-				strmangle.WhereClause("\"", "\"", 2, mediumPrimaryKeyColumns),
+				strmangle.WhereClause("\"", "\"", 2, imagePrimaryKeyColumns),
 			)
 			values := []interface{}{o.ID, rel.ID}
 
@@ -773,15 +773,15 @@ func (o *Place) AddMedia(ctx context.Context, exec boil.ContextExecutor, insert 
 
 	if o.R == nil {
 		o.R = &placeR{
-			Media: related,
+			Images: related,
 		}
 	} else {
-		o.R.Media = append(o.R.Media, related...)
+		o.R.Images = append(o.R.Images, related...)
 	}
 
 	for _, rel := range related {
 		if rel.R == nil {
-			rel.R = &mediumR{
+			rel.R = &imageR{
 				Place: o,
 			}
 		} else {
